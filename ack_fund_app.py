@@ -2,11 +2,17 @@ from flask import Flask, render_template, session, jsonify, request, send_file
 import pandas as pd
 import numpy as np
 import io
+import os
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Necessario per usare le sessioni
 
-CSV_file = "ACk_Phil_Sci/my_flask_app/acknowledgments.csv"
+# Percorso relativo
+base_dir = os.path.dirname(os.path.abspath(__file__))  # Ottieni la directory del file Python in esecuzione
+CSV_file = os.path.join(base_dir, "acknowledgments.csv")
+
+# CSV_file = "acknowledgments.csv"
+# CSV_file = "ACk_Phil_Sci/my_flask_app/acknowledgments.csv"
 
 # Dataframe di input
 df = pd.read_csv(CSV_file, delimiter=",", encoding="UTF-8")
