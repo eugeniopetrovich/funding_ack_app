@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funding bodies</title>
+    <!--<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">--> 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.0.0/dist/css/tom-select.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .row-container {
+            display: flex; /* Usa Flexbox per mettere gli elementi sulla stessa riga */
+            justify-content: space-between; /* Spazio tra gli elementi */
+            width: 100%; /* Occupa tutta la larghezza disponibile */
+            margin-top: 3px;
+        }
+        
+        .custom-id-text {
+            font-size: 10px; /* Imposta la dimensione del testo */
+            font-style: italic; /* Imposta il testo in corsivo */
+            color: #6c757d; /* Colore grigio chiaro */
+            margin: 5px; /* Rimuove i margini per evitare spazi extra */
+        }
+        
+        #id-text {
+            text-align: right; /* Allinea "ID" a destra */
+        }
+        
+        #indicator-progress {
+            text-align: left; /* Allinea "Number" a sinistra */
+        }
+
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #selected-title {
+            text-align: center;  /* Centra il testo orizzontalmente */
+            font-size: 1.2rem;   /* Regola la dimensione del carattere */
+            
+            margin-top: 15px;    /* Aggiunge spazio sopra */
+        }
+
+        
+        .item{
+            width: 100%;
+        }
+    </style>
+    
+</head>
+<body>
+
+<div class="container">
+    <h1>Funding bodies search</h1>
+
+    <div class="text-muted small mb-3 text-left fst-italic">
+        <p class="mb-1">Select the funders using the search box (begin typing to activate a suggestion list) and click "Save" to store selected funders.
+        If there is no funder in the acknowledgment, leave the search box blank and just click "Save".<br>
+        In the text box "Selected organization", you can visualize the funders selected for the entry. Click on the link to open the ROR page of the organization.
+        </p>
+        <p class="mb-1"><strong>Navigation:</strong> Use "Back" and "Next" to navigate between entries. Type a WOS ID and click "Go to ID" to jump to a specific record.</p>
+        <p><strong>Saving:</strong> Click "Download CSV" to export the data. Use "Erase Data" to erase all your entries and restore the original file.</p>
+    </div>
+    
+
+    <div class="d-flex justify-content-center">
+        <textarea id="ack-text" class="form-control w-100 mt-3" rows="10" readonly>{{ ack_text }} </textarea>
+    </div>
+
+    <div class="row-container">
+        <p id="id-text" class="custom-id-text">ID: {{ ut_id }}</p>
+        <p id="indicator-progress" class="custom-id-text">Number: {{ row_id }} / {{ df_size }}</p>
+    </div>
+
+
+    <select id="select-repo" placeholder="Pick a funder..." multiple></select>
+    
+    <button id="save-btn" class="btn btn-primary mt-3">Save</button>
+    
+    <h5 id="selected-title">Selected organizations:</h5>
+    <div id="selected-ids" class="border rounded p-2" style="min-height: 100px; background-color: #f8f9fa;"></div>
+    
+    <div class="d-flex flex-column mt-3">
+        <!-- Container per i bottoni prev e next -->
+        <div class="d-flex mb-2">
+            <button id="prev-btn" class="btn btn-primary me-2">Back</button>
+            <button id="next-btn" class="btn btn-primary">Next</button>
+        </div>
+    
+        <!-- Casella di input ut-input sotto prev e next -->
+        <input type="text" id="ut-input" class="form-control mb-2" placeholder="Enter WOS ID" />
+    
+        <!-- Bottone go-to-id sotto ut-input, allineato a sinistra e con larghezza automatica -->
+        <button id="go-to-id-btn" class="btn btn-primary w-auto mb-2">Go to ID</button>
+    
+        <!-- Riga con Download CSV a sinistra e Erase data a destra -->
+        <div class="d-flex justify-content-between mt-2">
+            <button id="export-csv-btn" class="btn btn-success">Download CSV</button>
+            <button id="reset-button" class="btn btn-danger">Erase data</button>
+        </div>
+        
+    </div>
+    
+
+    
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.0.0/dist/js/tom-select.complete.min.js"></script>
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Caricamento dei dati iniziali
+        fetch("/initial_data")  // Chiediamo al backend i dati della da inizializzare
+            .then(response => response.json())
+            .then(data => {
+
+                console.log("Dati iniziali ricevuti:", data); // 👈 LOG DI DEBUG
+
+                document.getElementById("ack-text").value = data.ack_text;
+                document.getElementById("id-text").textContent = "ID: " + data.ut_id;
+                document.getElementById("selected-ids").innerHTML = data.funders_text || "";  // Mostra Funders_Text se presente
+                document.getElementById("indicator-progress").textContent = "Number: " + data.row_id + " / " + data.df_size;
+                
+            })
+            .catch(error => console.error("Errore nel caricamento iniziale:", error));
+        
+        // Gestione clic sul bottone "Go to ID"
+        document.getElementById("go-to-id-btn").addEventListener("click", function() {
+            const ut_id = document.getElementById("ut-input").value; // Recupera il valore dell'input UT
+            console.log(ut_id)
+            const encoded_ut_id = encodeURIComponent(ut_id);  // Codifica il parametro ut_id
+            console.log(encoded_ut_id)
+
+
+            if (ut_id) {
+                fetch(`/get_ack_text?ut_id=${encoded_ut_id}`) // Chiediamo al backend il testo dell'acknowledgment
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.ack_text) {
+                            console.log("Dati iniziali ricevuti:", data); // 👈 LOG DI DEBUG
+
+                            document.getElementById("ack-text").value = data.ack_text;
+                            document.getElementById("id-text").textContent = "ID: " + data.ut_id;
+                            document.getElementById("selected-ids").innerHTML = data.funders_text || "";  // Mostra Funders_Text se presente
+                            document.getElementById("indicator-progress").textContent = "Number: " + data.row_id + " / " + data.df_size;
+                        } else {
+                            alert(data.message); // Mostra un messaggio se l'ID non è trovato
+                        }
+                    })
+                    .catch(error => console.error("Errore nel caricamento dei dati:", error));
+            } else {
+                alert("Please enter a valid UT ID.");
+            }
+        });
+    });
+
+    // Campo per selezionare il finanziatore
+    new TomSelect('#select-repo', {
+        valueField: 'id', 
+        // labelField: 'name',
+        labelField: 'aliases',
+        // searchField: 'name',
+        searchField: 'aliases',
+        load: function(query, callback) {
+            if (!query.length) return callback();
+    
+            var url = 'https://api.ror.org/v2/organizations?affiliation=' + encodeURIComponent(query);
+            console.log("Interrogazione API a:", url); // Debug
+    
+            fetch(url)
+                .then(response => response.json())
+                .then(json => {
+                    console.log("Risposta API:", json); // Debug
+                    if (!json.items) {
+                        console.warn("Nessun 'items' trovato nella risposta");
+                        return callback([]);
+                    }
+                    callback(json.items.map(org => {
+                        
+                        //console.log(org.organization.names[0].lang)
+                        // Trova il nome corrispondente al tipo "ror_display"
+                        //const rorDisplayName = org.organization.names.find(nome => nome.types.includes("ror_display"));
+                        
+                        const rorDisplayName = org.organization.names.find(nome => nome.types.includes("ror_display"));
+                        // console.log(rorDisplayName.value)
+                        const standard_name = rorDisplayName?.value || "No name found";
+
+                        // aliases
+                        const namesArray = org.organization.names.map(n => n.value);
+                        const allNames = namesArray.join(", ");
+
+                        console.log(standard_name)
+                        // Crea l'oggetto da restituire
+                        const item = {
+                            id: org.organization.id,
+                            name: standard_name,
+                            country: org.organization.locations[0]?.geonames_details?.country_name || "Unknown",
+                            type: org.organization.types[0] || "Unknown",
+                            aliases : allNames
+                        };
+                    
+                        console.log("Elemento restituito:", item); // <-- Stampa ogni oggetto restituito alla callback
+                    
+                        return item
+                    }));
+                })
+                .catch(error => {
+                    console.error("Errore nella richiesta API:", error);
+                    callback([]);
+                });
+        },
+        render: {
+            option: function(item, escape) {
+                
+                return `<div class="py-2">
+                    <span class="h5">${escape(item.name)}</span><br>
+                    <small class="text-muted">${escape(item.country)} - ${escape(item.type)}</small><br>
+                    <small class="text-muted"><i>${escape(item.aliases)}</i></small>
+                </div>`;
+            },
+            item: function(item, escape) {
+                return `<div class="py-2">
+                            <span class="h5">${escape(item.name)}</span>
+                        </div>`;
+            }
+        },
+    });
+
+
+    document.getElementById("save-btn").addEventListener("click", function() {
+        let select = document.querySelector('#select-repo').tomselect;
+        let selectedIds = select.items;
+        let ut_id = document.getElementById("id-text").textContent.replace("ID: ", "");  // Ottieni l'UT corrente
+    
+        if (selectedIds.length > 0) {
+
+            let formattedListHTML = selectedIds.map(id => {
+                let name = select.options[id]?.name || "Nome non disponibile";
+                let country = select.options[id]?.country || "Country non disponibile";
+                return `${name} - ${country} (<a href="${id}" target="_blank">${id}</a>)`;
+            }).join("<br>");
+            
+            document.getElementById("selected-ids").innerHTML = formattedListHTML;
+
+
+            // Formatta la lista come array di ID per il backend
+            let formattedList = selectedIds.map(id => select.options[id]?.id || id);
+    
+            // Invia i dati al backend
+            fetch("/save_selection", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    selected: formattedList,
+                    formatted_text: formattedListHTML,
+                    UT_id: ut_id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);  // Mostra un messaggio di conferma
+            })
+            .catch(error => console.error("Errore nel salvataggio:", error));
+    
+        } else {
+            alert("No funding organization selected!");
+            document.getElementById("selected-ids").innerHTML = "[No funding organization for this acknowledgment]"; 
+
+            // Invia i dati al backend
+            fetch("/save_selection", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    selected: "[No funding organization for this acknowledgment]",
+                    formatted_text: "[No funding organization for this acknowledgment]",
+                    UT_id: ut_id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);  // Mostra un messaggio di conferma
+            })
+            .catch(error => console.error("Errore nel salvataggio:", error));
+        }
+    });
+    
+
+    document.getElementById("prev-btn").addEventListener("click", function() {
+        fetch("/prev", { method: "POST" })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.message) });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Svuota il TomSelect
+                document.querySelector("#select-repo").tomselect.clear();
+
+                // Preleva i dati dalla tabella
+                document.getElementById("ack-text").value = data.ack_text;
+                document.getElementById("id-text").textContent = "ID: " + data.ut_id;
+                document.getElementById("selected-ids").innerHTML = data.funders_text || "";
+                document.getElementById("indicator-progress").textContent = "Number: " + data.row_id + " / " + data.df_size;
+                
+                
+            })
+            .catch(error => alert(error.message));
+    });
+
+    document.getElementById("next-btn").addEventListener("click", function() {
+        fetch("/next", { method: "POST" })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.message) });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Svuota il TomSelect
+                document.querySelector("#select-repo").tomselect.clear();
+
+                // Preleva i dati dalla tabella
+                document.getElementById("ack-text").value = data.ack_text;
+                document.getElementById("id-text").textContent = "ID: " + data.ut_id;
+                document.getElementById("selected-ids").innerHTML = data.funders_text || "";
+                document.getElementById("indicator-progress").textContent = "Number: " + data.row_id + " / " + data.df_size;
+                
+
+            })
+            .catch(error => alert(error.message));
+    });
+
+    document.getElementById("reset-button").addEventListener("click", function () {
+        if (confirm("Sei sicuro di voler cancellare tutti gli inserimenti? L'operazione non è reversibile.")) {
+            fetch("/reset_funders", {
+                method: "POST"
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Errore nella richiesta");
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.message);  // Mostra conferma
+                location.reload();    // Ricarica la pagina per riflettere i cambiamenti
+            })
+            .catch(error => {
+                alert("Si è verificato un errore: " + error.message);
+            });
+        }
+    });
+
+    document.getElementById("export-csv-btn").addEventListener("click", function() {
+        window.location.href = "/export_csv";
+    });
+
+
+    
+    
+</script>
+
+
+</body>
+</html>
