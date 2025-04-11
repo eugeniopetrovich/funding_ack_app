@@ -3,9 +3,13 @@ import pandas as pd
 import numpy as np
 import io
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'  # Necessario per usare le sessioni
+
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-key')
+# app.secret_key = 'supersecretkey'  # Necessario per usare le sessioni
 
 # Percorso relativo
 base_dir = os.path.dirname(os.path.abspath(__file__))  # Ottieni la directory del file Python in esecuzione
@@ -200,9 +204,9 @@ def reset_funders():
         df["Funders"] = np.nan
         df["Funders_Text"] = np.nan
         df.to_csv(CSV_file, index=False, encoding="UTF-8")
-        return jsonify({"message": "Tutti gli inserimenti sono stati cancellati con successo."})
+        return jsonify({"message": "All entries have been successfully deleted."})
     except Exception as e:
-        return jsonify({"message": f"Errore durante il reset: {str(e)}"}), 500
+        return jsonify({"message": f"Error during reset: {str(e)}"}), 500
 
 
 @app.route("/get_ack_text", methods=["GET"])

@@ -279,7 +279,7 @@
             .then(data => {
                 alert(data.message);  // Mostra un messaggio di conferma
             })
-            .catch(error => console.error("Errore nel salvataggio:", error));
+            .catch(error => console.error("Error while saving:", error));
     
         } else {
             alert("No funding organization selected!");
@@ -351,7 +351,7 @@
     });
 
     document.getElementById("reset-button").addEventListener("click", function () {
-        if (confirm("Sei sicuro di voler cancellare tutti gli inserimenti? L'operazione non è reversibile.")) {
+        if (confirm("Are you sure you want to delete all entries? This action cannot be undone.")) {
             fetch("/reset_funders", {
                 method: "POST"
             })
@@ -366,7 +366,7 @@
                 location.reload();    // Ricarica la pagina per riflettere i cambiamenti
             })
             .catch(error => {
-                alert("Si è verificato un errore: " + error.message);
+                alert("An error occurred: " + error.message);
             });
         }
     });
