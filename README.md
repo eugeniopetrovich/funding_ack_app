@@ -1,25 +1,29 @@
-# Funding Bodies Search
+# Funding Bodies Search – Version 2
 
 https://funding-ack-app.onrender.com
 
-A Flask web application to annotate funding organizations mentioned in acknowledgments.
+This is version 2 of the **Funding Bodies Search** web application. The app allows users to load acknowledgment texts from research papers and assign standardized funders using the [ROR (Research Organization Registry)](https://ror.org) API.
 
-## Features
+## 🚀 New Features in Version 2
 
-- Navigate through acknowledgment texts
-- Search and select funders using the [ROR](https://ror.org/) API
-- Save selections to a local CSV file
+- 🗃️ **File upload**: Upload your own `.csv` file with columns `UT` and `Ack_text`.
+- 🔍 **Autocomplete search**: Use the ROR API to search for funders by name or affiliation.
+- 💾 **Save funders**: Save one or more funders for each acknowledgment line.
+- 🧭 **Navigation tools**:
+  - **Next** / **Previous** to go through entries.
+  - **Go to ID**: Jump directly to a record using its `UT` identifier.
+- ✅ **Visual confirmation** after saving each entry.
+- 📦 **Export data**: Download your annotated dataset with a timestamped filename.
+- 📝 **Instructions toggle**: Show/hide help instructions from the interface.
 
-## Usage
+## 📄 File Format
 
-1. Select a funder using the search box.
-2. Click "Save" to store it.
-3. Use navigation buttons or go directly to a specific WOS ID.
-4. Export your dataset with the "Download CSV" button.
+Uploaded CSV files must contain at least the following columns:
 
-## Deployment
+- `UT` – unique identifier of the publication.
+- `Ack_text` – the raw acknowledgment text.
 
-This app is deployed using [Render](https://render.com).
+Optional columns (`Funders`, `Funders_Text`, `row_id`) are automatically created if missing.
 
 ## License
 
