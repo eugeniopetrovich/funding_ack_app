@@ -7,6 +7,8 @@
     <!--<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">--> 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.0.0/dist/css/tom-select.css" rel="stylesheet">
 
     <style>
@@ -72,14 +74,55 @@
 <div class="container">
     <h1>Funding bodies search</h1>
 
-    <div class="text-muted small mb-3 text-left fst-italic">
-        <p class="mb-1">Select the funders using the search box (begin typing to activate a suggestion list) and click "Save" to store selected funders.
-        If there is no funder in the acknowledgment, leave the search box blank and just click "Save".<br>
-        In the text box "Selected organization", you can visualize the funders selected for the entry. Click on the link to open the ROR page of the organization.
-        </p>
-        <p class="mb-1"><strong>Navigation:</strong> Use "Back" and "Next" to navigate between entries. Type a WOS ID and click "Go to ID" to jump to a specific record.</p>
-        <p><strong>Saving:</strong> Click "Download CSV" to export the data. Use "Erase Data" to erase all your entries and restore the original file.</p>
+    <div class="text-muted small mb-3 text-center fst-italic">
+        <p class="mb-1"> An app for helping with funding data entry! </p>
+        
     </div>
+
+    <!-- Link per mostrare/nascondere le istruzioni -->
+    <p>
+        <a class="text-decoration-underline text-primary small" data-bs-toggle="collapse" href="#instructionsBox"
+            role="button" aria-expanded="false" aria-controls="instructionsBox" id="toggleInstructionsLink">
+            <span id="instructionsText">Show instructions</span>
+        </a>
+    </p>
+
+    <!-- Box istruzioni nascosto di default -->
+    <div class="collapse" id="instructionsBox">
+        <div class="card card-body bg-light border-0">
+        <p><strong>1.</strong> Click <em>Upload CSV</em> to upload a .csv file with mandatory columns <code>UT</code> and <code>Ack_text</code>.</p>
+        <p><strong>2.</strong> The system will redirect you automatically to the first data to entry. </p>
+        <p><strong>3.</strong> Select the funders using the search box (begin typing to activate a suggestion list) and click <em>Save</em> to store selected funders. </p>
+        <p><strong>4.</strong> Use <em>Back</em>, <em>Next</em> or <em>Go to ID</em> to navigate.</p>
+        <p><strong>5.</strong> Click <em>Download CSV</em> to export the data at the end of the work session.</p>
+        </div>
+    </div>
+
+
+    <!-- Bottone per caricare il file -->
+    <div class="mt-3 d-flex justify-content-between align-items-center" style="gap: 1rem;">
+        <!-- Bottone a sinistra -->
+        <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
+            <label for="file-upload" class="btn btn-success">Upload CSV</label>
+            <input type="file" id="file-upload" name="file" style="display:none;" accept=".csv" onchange="document.getElementById('upload-form').submit();" />
+        </form>
+    
+        <!-- Box con scritta e nome file -->
+        {% if uploaded_filename %}
+        <div class="d-flex align-items-center" style="gap: 0.5rem;">
+            <span class="text-muted small">Uploaded file:</span>
+            <div class="form-control bg-light text-dark text-end" style="max-width: 350px; min-width: 200px;" readonly>
+                {{ uploaded_filename }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if message %}
+    <div class="alert {% if 'Error' in message %}alert-danger{% else %}alert-success{% endif %} mt-3 text-center" role="alert">
+        {{ message }}
+    </div>
+    {% endif %}
     
 
     <div class="d-flex justify-content-center">
@@ -110,19 +153,23 @@
         <input type="text" id="ut-input" class="form-control mb-2" placeholder="Enter WOS ID" />
     
         <!-- Bottone go-to-id sotto ut-input, allineato a sinistra e con larghezza automatica -->
-        <button id="go-to-id-btn" class="btn btn-primary w-auto mb-2">Go to ID</button>
+        <button id="go-to-id-btn" class="btn btn-primary w-auto mb-2" >Go to ID</button>
     
         <!-- Riga con Download CSV a sinistra e Erase data a destra -->
         <div class="d-flex justify-content-between mt-2">
-            <button id="export-csv-btn" class="btn btn-success">Download CSV</button>
-            <button id="reset-button" class="btn btn-danger">Erase data</button>
+            <button id="export-csv-btn" class="btn btn-success" >Download CSV</button>
+            
         </div>
         
     </div>
     
-
     
 </div>
+
+
+
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.0.0/dist/js/tom-select.complete.min.js"></script>
 <script>
@@ -350,31 +397,25 @@
             .catch(error => alert(error.message));
     });
 
-    document.getElementById("reset-button").addEventListener("click", function () {
-        if (confirm("Are you sure you want to delete all entries? This action cannot be undone.")) {
-            fetch("/reset_funders", {
-                method: "POST"
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Errore nella richiesta");
-                }
-                return response.json();
-            })
-            .then(data => {
-                alert(data.message);  // Mostra conferma
-                location.reload();    // Ricarica la pagina per riflettere i cambiamenti
-            })
-            .catch(error => {
-                alert("An error occurred: " + error.message);
-            });
-        }
-    });
 
     document.getElementById("export-csv-btn").addEventListener("click", function() {
         window.location.href = "/export_csv";
     });
 
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleLink = document.getElementById("toggleInstructionsLink");
+        const textSpan = document.getElementById("instructionsText");
+        const collapseBox = document.getElementById("instructionsBox");
+    
+        // Quando il collapse cambia stato, aggiorna il testo
+        collapseBox.addEventListener("shown.bs.collapse", function () {
+            textSpan.textContent = "Hide instructions";
+        });
+    
+        collapseBox.addEventListener("hidden.bs.collapse", function () {
+            textSpan.textContent = "Show instructions";
+        });
+    });
 
     
     
