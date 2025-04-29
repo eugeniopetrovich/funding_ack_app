@@ -4,6 +4,7 @@ import numpy as np
 import io
 import os
 from datetime import datetime
+import pytz
 from dotenv import load_dotenv
 
 
@@ -526,7 +527,8 @@ def export_csv():
             output.seek(0)
 
              # Genera il timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            rome_tz = pytz.timezone("Europe/Rome")
+            timestamp = datetime.now(rome_tz).strftime("%Y%m%d_%H%M%S")
             filename = f"ack_funders_data_{timestamp}.csv"
             
             return send_file(

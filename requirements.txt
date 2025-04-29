@@ -3,3 +3,4 @@ pandas
 numpy
 gunicorn
 python-dotenv
+pytz
