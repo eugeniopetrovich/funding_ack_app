@@ -145,6 +145,12 @@
         <p id="indicator-progress" class="custom-id-text">Number: {{ row_id }} / {{ df_size }}</p>
     </div>
 
+    <!-- Progress Bar -->
+    <div class="progress mb-4">
+        <div id="prog-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+
+
     <!-- Selezionatore -->
     <select id="select-repo" placeholder="Pick a funder..." multiple></select>
     
@@ -224,6 +230,15 @@
                 document.getElementById("id-text").textContent = "ID: " + data.ut_id;
                 document.getElementById("selected-ids").innerHTML = data.funders_text || "";  // Mostra Funders_Text se presente
                 document.getElementById("indicator-progress").textContent = "Number: " + data.row_id + " / " + data.df_size;
+
+                const progressBar = document.getElementById("prog-bar");
+                const completedRows = parseInt(data.completed_rows, 10);  // Convertiamo a numero
+                const totalRows = parseInt(data.df_size, 10);
+                const progressWidth = (completedRows / totalRows) * 100;
+    
+                progressBar.style.width = `${progressWidth}%`;
+                progressBar.setAttribute("aria-valuenow", completedRows);
+                progressBar.setAttribute("aria-valuemax", totalRows);
                 
             })
             .catch(error => console.error("Errore nel caricamento iniziale:", error));
@@ -250,6 +265,16 @@
                             document.getElementById("id-text").textContent = "ID: " + data.ut_id;
                             document.getElementById("selected-ids").innerHTML = data.funders_text || "";  // Mostra Funders_Text se presente
                             document.getElementById("indicator-progress").textContent = "Number: " + data.row_id + " / " + data.df_size;
+
+                            const progressBar = document.getElementById("prog-bar");
+                            const completedRows = parseInt(data.completed_rows, 10);  // Convertiamo a numero
+                            const totalRows = parseInt(data.df_size, 10);
+                            const progressWidth = (completedRows / totalRows) * 100;
+                
+                            progressBar.style.width = `${progressWidth}%`;
+                            progressBar.setAttribute("aria-valuenow", completedRows);
+                            progressBar.setAttribute("aria-valuemax", totalRows);    
+
                         } else {
                             alert(data.message); // Mostra un messaggio se l'ID non è trovato
                         }
@@ -413,6 +438,14 @@
                 document.getElementById("selected-ids").innerHTML = data.funders_text || "";
                 document.getElementById("indicator-progress").textContent = "Number: " + data.row_id + " / " + data.df_size;
                 
+                const progressBar = document.getElementById("prog-bar");
+                const completedRows = parseInt(data.completed_rows, 10);  // Convertiamo a numero
+                const totalRows = parseInt(data.df_size, 10);
+                const progressWidth = (completedRows / totalRows) * 100;
+    
+                progressBar.style.width = `${progressWidth}%`;
+                progressBar.setAttribute("aria-valuenow", completedRows);
+                progressBar.setAttribute("aria-valuemax", totalRows);
                 
             })
             .catch(error => alert(error.message));
@@ -438,6 +471,15 @@
                 document.getElementById("id-text").textContent = "ID: " + data.ut_id;
                 document.getElementById("selected-ids").innerHTML = data.funders_text || "";
                 document.getElementById("indicator-progress").textContent = "Number: " + data.row_id + " / " + data.df_size;
+
+                const progressBar = document.getElementById("prog-bar");
+                const completedRows = parseInt(data.completed_rows, 10);  // Convertiamo a numero
+                const totalRows = parseInt(data.df_size, 10);
+                const progressWidth = (completedRows / totalRows) * 100;
+    
+                progressBar.style.width = `${progressWidth}%`;
+                progressBar.setAttribute("aria-valuenow", completedRows);
+                progressBar.setAttribute("aria-valuemax", totalRows);
                 
 
             })

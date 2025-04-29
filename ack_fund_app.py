@@ -63,7 +63,7 @@ def initial_data():
             first_row = df.iloc[current_index]
             
             
-            ack_text = first_row["Ack_text"]
+            ack_text = first_row["Ack_text"].strip()
             if pd.isna(ack_text):
                 ack_text = "0"
             
@@ -112,6 +112,10 @@ def initial_data():
             # Unisci i pezzi con spazi
             bib_ref = " ".join(bib_parts)
             
+            # Calcolo items già compilati
+            n_empty_rows = df.index[df["Funders_Text"].isna() | (df["Funders_Text"] == "")].shape[0]
+            completed_rows = str(df.shape[0] - n_empty_rows)
+            
 
         else:
             # Se df non è caricato, restituisci valori di default
@@ -122,6 +126,7 @@ def initial_data():
             df_size = "-"
             is_df = False
             bib_ref = ""
+            completed_rows = ""
         
         return jsonify({"ack_text": ack_text,
                         "ut_id": ut_id,
@@ -129,7 +134,8 @@ def initial_data():
                         "row_id" : row_id,
                         "df_size" : df_size,
                         "is_df" : is_df,
-                        "bib_ref": bib_ref})
+                        "bib_ref": bib_ref,
+                        "completed_rows": completed_rows})
     
     except Exception as e:
         return jsonify({"message": f"Errore: {str(e)}"}), 500
@@ -227,7 +233,7 @@ def next_ack():
         
         row = df.iloc[current_index]
     
-        ack_text = str(row["Ack_text"])
+        ack_text = str(row["Ack_text"]).strip()
         ut_id = str(row["UT"])
         
         funders_text = row.get("Funders_Text", "")
@@ -236,6 +242,11 @@ def next_ack():
             
         row_id = str(row["row_id"])
         df_size = str(df.shape[0])
+        
+        # Calcolo items già compilati
+        n_empty_rows = df.index[df["Funders_Text"].isna() | (df["Funders_Text"] == "")].shape[0]
+        completed_rows = str(df.shape[0] - n_empty_rows)
+        
         
         # Metadata
         authors = str(row["AF"]).strip()
@@ -277,7 +288,9 @@ def next_ack():
                     "row_id" : row_id,
                     "df_size" : df_size,
                     "is_df": True,
-                    "bib_ref": bib_ref})
+                    "bib_ref": bib_ref,
+                    "completed_rows": completed_rows
+                    })
     else:
         return jsonify({"message": "Nessun file caricato!", "is_df": False}), 400
 
@@ -299,7 +312,7 @@ def prev_ack():
         
         row = df.iloc[current_index]
     
-        ack_text = str(row["Ack_text"])
+        ack_text = str(row["Ack_text"]).strip()
         ut_id = str(row["UT"])
         
         funders_text = row.get("Funders_Text", "")
@@ -308,6 +321,11 @@ def prev_ack():
             
         row_id = str(row["row_id"])
         df_size = str(df.shape[0])
+        
+        # Calcolo items già compilati
+        n_empty_rows = df.index[df["Funders_Text"].isna() | (df["Funders_Text"] == "")].shape[0]
+        completed_rows = str(df.shape[0] - n_empty_rows)
+        
         
         # Metadata
         authors = str(row["AF"]).strip()
@@ -349,7 +367,9 @@ def prev_ack():
                     "row_id" : row_id,
                     "df_size" : df_size,
                     "is_df": True,
-                    "bib_ref": bib_ref})
+                    "bib_ref": bib_ref,
+                    "completed_rows": completed_rows
+                    })
     else:
         return jsonify({"message": "Nessun file caricato!", "is_df": False}), 400
         
@@ -419,11 +439,16 @@ def get_ack_text():
         # if not row.empty:
         if row.shape[0] > 0:
             # Se trovato, restituisci il testo di acknowledgment
-            ack_text = row.iloc[0]["Ack_text"]
+            ack_text = row.iloc[0]["Ack_text"].strip()
             ut_id = str(row.iloc[0]["UT"])
             funders_text = row.iloc[0]["Funders_Text"]
             row_id = str(row.iloc[0]["row_id"])
             df_size = str(df.shape[0])
+            
+            # Calcolo items già compilati
+            n_empty_rows = df.index[df["Funders_Text"].isna() | (df["Funders_Text"] == "")].shape[0]
+            completed_rows = str(df.shape[0] - n_empty_rows)
+            
             
             # Metadata
             authors = str(row.iloc[0]["AF"]).strip()
@@ -472,7 +497,8 @@ def get_ack_text():
                 "row_id" : row_id,
                 "df_size" : df_size,
                 "is_df": True,
-                "bib_ref": bib_ref
+                "bib_ref": bib_ref,
+                "completed_rows": completed_rows                
             })
         else:
             return jsonify({"message": "ID not found"}), 404
