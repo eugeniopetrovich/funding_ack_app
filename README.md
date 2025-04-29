@@ -8,11 +8,13 @@ This is version 2 of the **Funding Bodies Search** web application. The app allo
 
 - 🗃️ **File upload**: Upload your own `.csv` file.
 - 🔍 **Autocomplete search**: Use the ROR API to search for funders by name.
-- 💾 **Save funders**: Save one or more funders for each acknowledgments.
+- 💾 **Save funders**: Save one or more funders for each acknowledgment.
+- 🚫 **Handle empty selections**: Mark an acknowledgment as having *no funding organization*.
 - 🧭 **Navigation tools**:
   - **Next** / **Previous** to go through entries.
   - **Go to ID**: Jump directly to a record using its `UT` identifier.
 - ✅ **Visual confirmation** after saving each entry.
+- 📊 **Progress bar**: Tracks how many acknowledgments have already been annotated.
 - 📦 **Export data**: Download your annotated dataset with a timestamped filename.
 - 📝 **Instructions toggle**: Show/hide help instructions from the interface.
 
