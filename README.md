@@ -6,9 +6,9 @@ This is version 2 of the **Funding Bodies Search** web application. The app allo
 
 ## 🚀 New Features in Version 2
 
-- 🗃️ **File upload**: Upload your own `.csv` file with columns `UT` and `Ack_text`.
-- 🔍 **Autocomplete search**: Use the ROR API to search for funders by name or affiliation.
-- 💾 **Save funders**: Save one or more funders for each acknowledgment line.
+- 🗃️ **File upload**: Upload your own `.csv` file.
+- 🔍 **Autocomplete search**: Use the ROR API to search for funders by name.
+- 💾 **Save funders**: Save one or more funders for each acknowledgments.
 - 🧭 **Navigation tools**:
   - **Next** / **Previous** to go through entries.
   - **Go to ID**: Jump directly to a record using its `UT` identifier.
@@ -22,6 +22,12 @@ Uploaded CSV files must contain at least the following columns:
 
 - `UT` – unique identifier of the publication.
 - `Ack_text` – the raw acknowledgment text.
+- `AF` – the authors of the article.
+- `PY` – the publication year of the article.
+- `TI` – the title of the article.
+- `JI`, `VL`, `IS`  – journal, volume, and issue of the article.
+- `DI` – the DOI of the article.
+
 
 Optional columns (`Funders`, `Funders_Text`, `row_id`) are automatically created if missing.
 

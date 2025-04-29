@@ -90,7 +90,7 @@
     <!-- Box istruzioni nascosto di default -->
     <div class="collapse" id="instructionsBox">
         <div class="card card-body bg-light border-0">
-        <p><strong>1.</strong> Click <em>Upload CSV</em> to upload a .csv file with mandatory columns <code>UT</code> and <code>Ack_text</code>.</p>
+        <p><strong>1.</strong> Click <em>Upload CSV</em> to upload a .csv file with mandatory columns <code>UT</code>, <code>Ack_text</code>, <code>AF</code>, <code>TI</code>, <code>PY</code>, <code>JI</code>, <code>VL</code>, <code>IS</code> and <code>DI</code>.</p>
         <p><strong>2.</strong> The system will redirect you automatically to the first data to entry. </p>
         <p><strong>3.</strong> Select the funders using the search box (begin typing to activate a suggestion list) and click <em>Save</em> to store selected funders. </p>
         <p><strong>4.</strong> Use <em>Back</em>, <em>Next</em> or <em>Go to ID</em> to navigate.</p>
@@ -124,21 +124,34 @@
     </div>
     {% endif %}
     
-
-    <div class="d-flex justify-content-center">
-        <textarea id="ack-text" class="form-control w-100 mt-3" rows="10" readonly>{{ ack_text }} </textarea>
+    <!-- Box con reference bibliografica articolo -->
+    <div class="card card-body bg-light border-0 mt-3">
+        <h6>Article:</h6>
+        <p id="bibRefText" class="small text-muted"></p>
     </div>
 
+    <!-- Box con testo acknowledgment -->
+    <div class="d-flex justify-content-center">
+        <h5 class="mt-1 mb-1 text-center">Acknowledgment:</h5>
+    </div>
+
+    <div class="d-flex justify-content-center">
+        <textarea id="ack-text" class="form-control w-100 mt-2" rows="8" readonly>{{ ack_text }}</textarea>
+    </div>
+
+    <!-- Box con WOS ID e indicatore di progresso -->
     <div class="row-container">
         <p id="id-text" class="custom-id-text">ID: {{ ut_id }}</p>
         <p id="indicator-progress" class="custom-id-text">Number: {{ row_id }} / {{ df_size }}</p>
     </div>
 
-
+    <!-- Selezionatore -->
     <select id="select-repo" placeholder="Pick a funder..." multiple></select>
     
+    <!-- Bottone salva -->
     <button id="save-btn" class="btn btn-primary mt-3">Save</button>
     
+    <!-- Box con organizzazioni selezionate -->
     <h5 id="selected-title">Selected organizations:</h5>
     <div id="selected-ids" class="border rounded p-2" style="min-height: 100px; background-color: #f8f9fa;"></div>
     
@@ -155,7 +168,7 @@
         <!-- Bottone go-to-id sotto ut-input, allineato a sinistra e con larghezza automatica -->
         <button id="go-to-id-btn" class="btn btn-primary w-auto mb-2" >Go to ID</button>
     
-        <!-- Riga con Download CSV a sinistra e Erase data a destra -->
+        <!-- Riga con Download CSV -->
         <div class="d-flex justify-content-between mt-2">
             <button id="export-csv-btn" class="btn btn-success" >Download CSV</button>
             
@@ -174,6 +187,28 @@
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.0.0/dist/js/tom-select.complete.min.js"></script>
 <script>
 
+    // Funzione per abilitare/disabilitare i bottoni
+    function setButtonsState(isDf) {
+        // Lista di ID dei bottoni
+        const buttons = [
+            "save-btn",
+            "prev-btn",
+            "next-btn",
+            "go-to-id-btn",
+            "export-csv-btn"
+        ];
+    
+        buttons.forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                btn.disabled = !isDf;  // Disabilita se isDf è false
+            }
+        });
+    }
+
+
+
+
     document.addEventListener("DOMContentLoaded", function () {
         // Caricamento dei dati iniziali
         fetch("/initial_data")  // Chiediamo al backend i dati della da inizializzare
@@ -182,6 +217,9 @@
 
                 console.log("Dati iniziali ricevuti:", data); // 👈 LOG DI DEBUG
 
+                setButtonsState(data.is_df)
+
+                document.getElementById('bibRefText').innerHTML = data.bib_ref || '';    
                 document.getElementById("ack-text").value = data.ack_text;
                 document.getElementById("id-text").textContent = "ID: " + data.ut_id;
                 document.getElementById("selected-ids").innerHTML = data.funders_text || "";  // Mostra Funders_Text se presente
@@ -204,7 +242,10 @@
                     .then(data => {
                         if (data.ack_text) {
                             console.log("Dati iniziali ricevuti:", data); // 👈 LOG DI DEBUG
+                            
+                            setButtonsState(data.is_df)    
 
+                            document.getElementById('bibRefText').innerHTML = data.bib_ref || '';
                             document.getElementById("ack-text").value = data.ack_text;
                             document.getElementById("id-text").textContent = "ID: " + data.ut_id;
                             document.getElementById("selected-ids").innerHTML = data.funders_text || "";  // Mostra Funders_Text se presente
@@ -363,7 +404,10 @@
                 // Svuota il TomSelect
                 document.querySelector("#select-repo").tomselect.clear();
 
+                setButtonsState(data.is_df)
+
                 // Preleva i dati dalla tabella
+                document.getElementById('bibRefText').innerHTML = data.bib_ref || '';
                 document.getElementById("ack-text").value = data.ack_text;
                 document.getElementById("id-text").textContent = "ID: " + data.ut_id;
                 document.getElementById("selected-ids").innerHTML = data.funders_text || "";
@@ -386,7 +430,10 @@
                 // Svuota il TomSelect
                 document.querySelector("#select-repo").tomselect.clear();
 
+                setButtonsState(data.is_df)
+
                 // Preleva i dati dalla tabella
+                document.getElementById('bibRefText').innerHTML = data.bib_ref || '';
                 document.getElementById("ack-text").value = data.ack_text;
                 document.getElementById("id-text").textContent = "ID: " + data.ut_id;
                 document.getElementById("selected-ids").innerHTML = data.funders_text || "";

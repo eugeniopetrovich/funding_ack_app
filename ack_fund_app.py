@@ -60,7 +60,8 @@ def initial_data():
         
             current_index = session.get("current_index", 0)  # Usa il valore salvato in sessione
             # Prendi la riga corrispondente al current index
-            first_row = df.iloc[current_index]  
+            first_row = df.iloc[current_index]
+            
             
             ack_text = first_row["Ack_text"]
             if pd.isna(ack_text):
@@ -77,22 +78,58 @@ def initial_data():
             df_size = str(df.shape[0])
             
             is_df = True
+            
+            # Metadata
+            authors = str(first_row["AF"]).strip()
+            title = str(first_row["TI"]).strip()
+            pub_year = str(first_row["PY"]).strip()
+            journal = str(first_row["JI"]).strip()
+            vol = str(first_row["VL"]).strip()
+            issue = str(first_row["IS"]).strip()
+            doi = str(first_row["DI"]).strip()
+            
+            # Create the bibliographic reference from metadata
+            bib_parts = []
+
+            if authors:
+                bib_parts.append(authors)
+            if pub_year:
+                bib_parts.append(f"({pub_year})")
+            if title:
+                bib_parts.append(f"'{title}'")
+            if journal:
+                bib_parts.append(f"<em>{journal}</em>")
+            if vol:
+                volume_part = vol
+                if issue:
+                    volume_part += f"({issue})"
+                bib_parts.append(volume_part)
+            if doi:
+                doi_url = f"https://doi.org/{doi}"
+                doi_link = f'<a href="{doi_url}" target="_blank" rel="noopener noreferrer">{doi_url}</a>'
+                bib_parts.append(doi_link)
+
+            # Unisci i pezzi con spazi
+            bib_ref = " ".join(bib_parts)
+            
 
         else:
             # Se df non è caricato, restituisci valori di default
-            ack_text = "-"
+            ack_text = ""
             ut_id = "-"
-            funders_text = "-"
+            funders_text = ""
             row_id = "-"
             df_size = "-"
             is_df = False
+            bib_ref = ""
         
         return jsonify({"ack_text": ack_text,
                         "ut_id": ut_id,
                         "funders_text": funders_text,
                         "row_id" : row_id,
                         "df_size" : df_size,
-                        "is_df" : is_df})
+                        "is_df" : is_df,
+                        "bib_ref": bib_ref})
     
     except Exception as e:
         return jsonify({"message": f"Errore: {str(e)}"}), 500
@@ -126,7 +163,7 @@ def upload_file():
             df = pd.read_csv(filepath)
             
             # Controlla la presenza delle colonne obbligatorie
-            required_columns = {"UT", "Ack_text"}
+            required_columns = {"UT", "Ack_text", "AF", "PY", "TI", "JI", "VL", "IS", "DI"}
             
             if not required_columns.issubset(df.columns):
                 missing = required_columns - set(df.columns)
@@ -199,15 +236,48 @@ def next_ack():
             
         row_id = str(row["row_id"])
         df_size = str(df.shape[0])
+        
+        # Metadata
+        authors = str(row["AF"]).strip()
+        title = str(row["TI"]).strip()
+        pub_year = str(row["PY"]).strip()
+        journal = str(row["JI"]).strip()
+        vol = str(row["VL"]).strip()
+        issue = str(row["IS"]).strip()
+        doi = str(row["DI"]).strip()
+        
+        # Create the bibliographic reference from metadata
+        bib_parts = []
+
+        if authors:
+            bib_parts.append(authors)
+        if pub_year:
+            bib_parts.append(f"({pub_year})")
+        if title:
+            bib_parts.append(f"'{title}'")
+        if journal:
+            bib_parts.append(f"<em>{journal}</em>")
+        if vol:
+            volume_part = vol
+            if issue:
+                volume_part += f"({issue})"
+            bib_parts.append(volume_part)
+        if doi:
+            doi_url = f"https://doi.org/{doi}"
+            doi_link = f'<a href="{doi_url}" target="_blank" rel="noopener noreferrer">{doi_url}</a>'
+            bib_parts.append(doi_link)
+
+        # Unisci i pezzi con spazi
+        bib_ref = " ".join(bib_parts)
     
         
-    
         return jsonify({"ack_text": ack_text,
                     "ut_id": ut_id,
                     "funders_text": funders_text,
                     "row_id" : row_id,
                     "df_size" : df_size,
-                    "is_df": True})
+                    "is_df": True,
+                    "bib_ref": bib_ref})
     else:
         return jsonify({"message": "Nessun file caricato!", "is_df": False}), 400
 
@@ -238,6 +308,39 @@ def prev_ack():
             
         row_id = str(row["row_id"])
         df_size = str(df.shape[0])
+        
+        # Metadata
+        authors = str(row["AF"]).strip()
+        title = str(row["TI"]).strip()
+        pub_year = str(row["PY"]).strip()
+        journal = str(row["JI"]).strip()
+        vol = str(row["VL"]).strip()
+        issue = str(row["IS"]).strip()
+        doi = str(row["DI"]).strip()
+        
+        # Create the bibliographic reference from metadata
+        bib_parts = []
+
+        if authors:
+            bib_parts.append(authors)
+        if pub_year:
+            bib_parts.append(f"({pub_year})")
+        if title:
+            bib_parts.append(f"'{title}'")
+        if journal:
+            bib_parts.append(f"<em>{journal}</em>")
+        if vol:
+            volume_part = vol
+            if issue:
+                volume_part += f"({issue})"
+            bib_parts.append(volume_part)
+        if doi:
+            doi_url = f"https://doi.org/{doi}"
+            doi_link = f'<a href="{doi_url}" target="_blank" rel="noopener noreferrer">{doi_url}</a>'
+            bib_parts.append(doi_link)
+
+        # Unisci i pezzi con spazi
+        bib_ref = " ".join(bib_parts)
     
     
         return jsonify({"ack_text": ack_text,
@@ -245,7 +348,8 @@ def prev_ack():
                     "funders_text": funders_text,
                     "row_id" : row_id,
                     "df_size" : df_size,
-                    "is_df": True})
+                    "is_df": True,
+                    "bib_ref": bib_ref})
     else:
         return jsonify({"message": "Nessun file caricato!", "is_df": False}), 400
         
@@ -320,6 +424,40 @@ def get_ack_text():
             funders_text = row.iloc[0]["Funders_Text"]
             row_id = str(row.iloc[0]["row_id"])
             df_size = str(df.shape[0])
+            
+            # Metadata
+            authors = str(row.iloc[0]["AF"]).strip()
+            title = str(row.iloc[0]["TI"]).strip()
+            pub_year = str(row.iloc[0]["PY"]).strip()
+            journal = str(row.iloc[0]["JI"]).strip()
+            vol = str(row.iloc[0]["VL"]).strip()
+            issue = str(row.iloc[0]["IS"]).strip()
+            doi = str(row.iloc[0]["DI"]).strip()
+            
+            # Create the bibliographic reference from metadata
+            bib_parts = []
+
+            if authors:
+                bib_parts.append(authors)
+            if pub_year:
+                bib_parts.append(f"({pub_year})")
+            if title:
+                bib_parts.append(f"'{title}'")
+            if journal:
+                bib_parts.append(f"<em>{journal}</em>")
+            if vol:
+                volume_part = vol
+                if issue:
+                    volume_part += f"({issue})"
+                bib_parts.append(volume_part)
+            if doi:
+                doi_url = f"https://doi.org/{doi}"
+                doi_link = f'<a href="{doi_url}" target="_blank" rel="noopener noreferrer">{doi_url}</a>'
+                bib_parts.append(doi_link)
+
+            # Unisci i pezzi con spazi
+            bib_ref = " ".join(bib_parts)
+            
         
             if pd.isna(funders_text):  # Se è NaN, sostituiscilo con una stringa valida
                 funders_text = ""
@@ -333,7 +471,8 @@ def get_ack_text():
                 "funders_text": funders_text,
                 "row_id" : row_id,
                 "df_size" : df_size,
-                "is_df": True
+                "is_df": True,
+                "bib_ref": bib_ref
             })
         else:
             return jsonify({"message": "ID not found"}), 404
@@ -353,7 +492,7 @@ def export_csv():
             df = pd.read_csv(filepath)
     
             # Seleziona solo le colonne rilevanti
-            df = df[["UT", "Ack_text", "Funders", "Funders_Text"]]
+            df = df[["UT", "Ack_text", "AF", "PY", "TI", "JI", "VL", "IS", "DI", "Funders", "Funders_Text"]]
 
             # Salva il CSV in memoria (non su disco)
             output = io.StringIO()
